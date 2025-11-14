@@ -360,6 +360,23 @@ function animate() {
                             grid.enemies.splice(eindex, 1);
                             score += enemy.scoreValue;
 
+                            const scoreLabel = document.createElement("label");
+                            scoreLabel.innerText = enemy.scoreValue;
+                            scoreLabel.style.position = 'absolute';
+                            scoreLabel.style.color = "white";
+                            scoreLabel.style.top = enemy.position.y + 'px';
+                            scoreLabel.style.left = enemyFound.position.x + 'px';
+                            scoreLabel.style.userSelect = "none";
+                            document.getElementById("game-container").appendChild(scoreLabel);
+                            gsap.to(scoreLabel, {
+                                opacity: 0,
+                                y: -30,
+                                duration: 0.75,
+                                onComplete: ()=>{
+                                    document.getElementById("game-container").removeChild(scoreLabel);
+                                }
+                            })
+
                             createParticles({
                                 obj: enemy, color: "#88b903"
                             })
@@ -492,8 +509,8 @@ addEventListener("keyup", ({key}) => {
 
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
-canvas.width = 1024;
-canvas.height = 576;
+canvas.width = 1024*0.8;
+canvas.height = 576*0.8;
 addEventListener("resize", () => {
     canvas.width = innerWidth;
     canvas.height = innerHeight;
