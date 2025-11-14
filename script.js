@@ -257,6 +257,31 @@ class Particle {
     }
 }
 
+class ScoreLabel {
+    constructor({ x, y, value }) {
+        this.x = x;
+        this.y = y;
+        this.value = value;
+        this.opacity = 1;
+        this.velocityY = -0.5;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = "#fff";
+        ctx.font = "1rem sans-serif";
+        ctx.fillText(this.value, this.x, this.y);
+        ctx.restore();
+    }
+
+    update() {
+        this.draw();
+        this.y += this.velocityY;
+        this.opacity -= 0.02;
+    }
+}
+
 
 function createParticles({ obj, color }) {
     for (let i = 0; i < 15; i++) {
@@ -360,22 +385,11 @@ function animate() {
                             grid.enemies.splice(eindex, 1);
                             score += enemy.scoreValue;
 
-                            const scoreLabel = document.createElement("label");
-                            scoreLabel.innerText = enemy.scoreValue;
-                            scoreLabel.style.position = 'absolute';
-                            scoreLabel.style.color = "white";
-                            scoreLabel.style.top = enemy.position.y + 'px';
-                            scoreLabel.style.left = enemyFound.position.x + 'px';
-                            scoreLabel.style.userSelect = "none";
-                            document.getElementById("game-container").appendChild(scoreLabel);
-                            gsap.to(scoreLabel, {
-                                opacity: 0,
-                                y: -30,
-                                duration: 0.75,
-                                onComplete: ()=>{
-                                    document.getElementById("game-container").removeChild(scoreLabel);
-                                }
-                            })
+                            dynamicScoreLabels.push(new ScoreLabel({
+                                x: enemy.position.x + enemy.width / 2,
+                                y: enemy.position.y,
+                                value: enemy.scoreValue,
+                            }))
 
                             createParticles({
                                 obj: enemy, color: "#88b903"
@@ -407,11 +421,21 @@ function animate() {
 
     })
 
-
     // score label
     ctx.fillStyle = '#fff';
     ctx.font = '1.5rem sans-serif'
     ctx.fillText(`Score: ${score}`, 20, 40);
+
+    // dynamic score labels
+    dynamicScoreLabels.forEach((label, index)=>{
+        if (label.opacity <= 0){
+            setTimeout(()=>{
+                dynamicScoreLabels.splice(index, 1);
+            }, 0)
+        }else{
+            label.update();
+        }
+    })
 
     // enemy grid spawn
     if (frames % spawnInterval === 0) {
@@ -523,6 +547,7 @@ const backgroundStars = [];
 const enemyProjectiles = [];
 // const enemies = [];
 const enemyGrids = [];
+const dynamicScoreLabels = [];
 const actions = {
     moveLeft: false, moveRight: false, moveUp: false, moveDown: false, shoot: false,
 }
