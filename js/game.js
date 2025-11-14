@@ -1,3 +1,34 @@
+
+const canvas = document.getElementById("canvas1");
+const ctx = canvas.getContext("2d");
+canvas.width = 1024;
+canvas.height = 576;
+addEventListener("resize", () => {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+})
+
+let player = null;
+let projectiles = [];
+let particles = [];
+let backgroundStars = [];
+let enemyProjectiles = [];
+// const enemies = [];
+let enemyGrids = [];
+let dynamicScoreLabels = [];
+const actions = {
+    moveLeft: false, moveRight: false, moveUp: false, moveDown: false, shoot: false,
+}
+const game = {
+    over: false,
+    active: true,
+}
+let lastShootTime = 0;
+const shootCooldown = 100; // milliseconds between shots (0.1s)
+let frames = 0;
+let score = 0;
+let spawnInterval = Math.floor(Math.random() * 500) + 500;
+
 class Player {
     constructor() {
         this.position = {
@@ -350,6 +381,8 @@ function animate() {
             if (player.health <= 0){
                 setTimeout(() => {
                     game.active = false;
+
+                    window.dispatchEvent(new CustomEvent('game-over'));
                 }, 2000)
             }
         }
@@ -384,6 +417,7 @@ function animate() {
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
                             score += enemy.scoreValue;
+                            document.querySelector('#score').innerText = score;
 
                             dynamicScoreLabels.push(new ScoreLabel({
                                 x: enemy.position.x + enemy.width / 2,
@@ -421,10 +455,10 @@ function animate() {
 
     })
 
-    // score label
-    ctx.fillStyle = '#fff';
-    ctx.font = '1.5rem sans-serif'
-    ctx.fillText(`Score: ${score}`, 20, 40);
+    // // score label
+    // ctx.fillStyle = '#fff';
+    // ctx.font = '1.5rem sans-serif'
+    // ctx.fillText(`Score: ${score}`, 20, 40);
 
     // dynamic score labels
     dynamicScoreLabels.forEach((label, index)=>{
@@ -479,6 +513,41 @@ function animate() {
 
 }
 
+function init(){
+    player = new Player();
+    projectiles = [];
+    particles = [];
+    backgroundStars = [];
+    enemyProjectiles = [];
+    enemyGrids = [];
+    dynamicScoreLabels = [];
+    lastShootTime = 0;
+    frames = 0;
+    score = 0;
+
+    game.over = false;
+    game.active = true;
+
+    // stars
+    for (let i = 0; i < 50; i++) {
+        backgroundStars.push(new Particle({
+            position: {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height
+            },
+            velocity: {
+                x: 0,
+                y: 0.4,
+            },
+            radius: Math.random() * 2,
+            color: "#fff",
+            fade: false,
+        }))
+    }
+
+    document.querySelector('#score').innerText = score;
+}
+
 addEventListener("keydown", ({key}) => {
     switch (key) {
         case "a":
@@ -531,52 +600,21 @@ addEventListener("keyup", ({key}) => {
 })
 
 
-const canvas = document.getElementById("canvas1");
-const ctx = canvas.getContext("2d");
-canvas.width = 1024*0.8;
-canvas.height = 576*0.8;
-addEventListener("resize", () => {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-})
 
-const player = new Player();
-const projectiles = [];
-const particles = [];
-const backgroundStars = [];
-const enemyProjectiles = [];
-// const enemies = [];
-const enemyGrids = [];
-const dynamicScoreLabels = [];
-const actions = {
-    moveLeft: false, moveRight: false, moveUp: false, moveDown: false, shoot: false,
-}
-const game = {
-    over: false,
-    active: true,
-}
-let lastShootTime = 0;
-const shootCooldown = 100; // milliseconds between shots (0.1s)
-let frames = 0;
-let score = 0;
-let spawnInterval = Math.floor(Math.random() * 500) + 500;
-
-// stars
-for (let i = 0; i < 50; i++) {
-    backgroundStars.push(new Particle({
-        position: {
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height
-        },
-        velocity: {
-            x: 0,
-            y: 0.4,
-        },
-        radius: Math.random() * 2,
-        color: "#fff",
-        fade: false,
-    }))
+export const startGame = ()=>{
+    init();
+    animate();
 }
 
-animate();
+// document.querySelector("#startBtn").addEventListener("click", ()=>{
+//     document.querySelector("#startScreen").style.display = "none";
+//     init();
+//     animate();
+// })
+// document.querySelector("#restartBtn").addEventListener("click", ()=>{
+//     document.querySelector("#restartScreen").classList.add('d-none');
+//     init();
+//     animate();
+//
+// })
 

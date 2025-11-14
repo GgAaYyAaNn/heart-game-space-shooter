@@ -10,9 +10,89 @@
 <body>
 
     <div id="game-container">
+        <header>
+            <h4>Score: <span id="score">0</span></h4>
+            <div class="user">
+                <img id="profile-picture" src="" alt="">
+                <span id="username"></span>
+                <div id="login-btn" class="btn">
+                    <img alt="Login">
+                    <span>Login</span>
+                </div>
+<!--                <div id="logout-btn" class="btn">-->
+<!--                    <img alt="Logout">-->
+<!--                    <span>Logout</span>-->
+<!--                </div>-->
+            </div>
+        </header>
+
         <canvas id="canvas1"></canvas>
+
+
+        <div id="start-menu" class="menu">
+            <div class="menu-container">
+                <h1 class="title">Space Shooter</h1>
+                <div class="btn-group">
+                    <div class="start-btn btn">
+                        <img alt="Start Button">
+                        <span >Start</span>
+                    </div>
+                    <div class="scoreboard-btn btn">
+                        <img alt="Scoreboard">
+                        <span >Scoreboard</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="restart-menu" class="menu d-none">
+            <div class="menu-container">
+                <h1 class="title">Game Over</h1>
+                <div class="btn-group">
+                    <div class="restart-btn btn">
+                        <img alt="Restart Game">
+                        <span>Restart</span>
+                    </div>
+                    <div class="main-menu-btn btn">
+                        <img alt="Back to Main Menu">
+                        <span>Main Menu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scoreboard-menu" class="menu d-none">
+            <div class="menu-container">
+                <h1 class="title">Scoreboard</h1>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Score</th>
+                    </tr>
+
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Gayan Jeewantha</td>
+                            <td>1000</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+                <div class="btn-group">
+                    <div class="main-menu-btn btn">
+                        <img alt="Back to Main Menu">
+                        <span >Main Menu</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="script.js"></script>
+    <script src="./js/main.js" type="module"></script>
 </body>
 </html>
