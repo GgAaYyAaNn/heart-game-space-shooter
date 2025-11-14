@@ -10,9 +10,10 @@ class Player {
         this.height = 0;
         this.health = 100;
         this.rotation = 0;
+        this.opacity = 1;
 
         const image = new Image();
-        image.src = "./img/player_1.png";
+        image.src = "./img/player_2.png";
         image.onload = () => {
             const scale = 0.4;
             this.image = image;
@@ -28,20 +29,21 @@ class Player {
         // ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
 
         ctx.save()
+        ctx.globalAlpha = this.opacity;
         ctx.translate(this.position.x + player.width / 2, this.position.y + this.height / 2);
         ctx.rotate(this.rotation);
         ctx.translate(-this.position.x - this.width / 2, -this.position.y - this.height / 2);
         ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
 
 
-        // health bar
-        ctx.fillStyle = "black";
-        ctx.fillRect(
-            this.position.x,
-            this.position.y + this.height,
-            this.width * this.health / 100,
-            1
-        )
+        // // health bar
+        // ctx.fillStyle = "black";
+        // ctx.fillRect(
+        //     this.position.x,
+        //     this.position.y + this.height,
+        //     this.width * this.health / 100,
+        //     1
+        // )
 
         ctx.restore();
 
@@ -54,6 +56,15 @@ class Player {
             this.position.x += this.velocity.x;
             this.position.y += this.velocity.y;
         }
+    }
+
+    shoot(){
+        return new Projectile({
+            position: {
+                x: this.position.x + this.width / 2,
+                y: this.position.y,
+            }, damage: 100,
+        })
     }
 }
 
@@ -68,11 +79,12 @@ class Enemy {
         }
         this.width = 0;
         this.height = 0;
+        this.scoreValue = 100;
         // this.health = 100;
         const image = new Image();
-        image.src = "./img/enemy_1.png";
+        image.src = "./img/enemy_2.png";
         image.onload = () => {
-            const scale = 0.2;
+            const scale = 0.35;
             this.image = image;
             this.width = this.image.width * scale;
             this.height = this.image.height * scale;
@@ -115,7 +127,7 @@ class Enemy {
                 x: this.position.x + this.width / 2, y: this.position.y + this.height / 2,
             }, velocity: {
                 x: 0, y: 5,
-            }, damage: 10,
+            }, damage: 100,
         })
     }
 }
@@ -165,39 +177,28 @@ class EnemyGrid {
 }
 
 class Projectile {
-    constructor({basePosition, damage}) {
+    constructor({position, damage}) {
         this.position = {
-            x: 0, y: 0,
+            x: position.x, y: position.y,
         }
         this.velocity = {
             x: 0, y: -10,
         }
         this.damage = damage;
         this.active = true;
-        const image = new Image();
-        image.src = "./img/projectile_1.png";
-        image.onload = () => {
-            const scale = 0.5;
-            this.image = image;
-            this.width = this.image.width * scale;
-            this.height = this.image.height * scale;
-
-            this.position.x = basePosition.x - this.width / 2;
-            this.position.y = basePosition.y - this.height;
-        }
+        this.width = 3;
+        this.height = 10;
     }
 
     draw() {
-        ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
-
+        ctx.fillStyle = "red";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 
     update() {
-        if (this.image) {
-            this.draw();
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
-        }
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
     }
 }
 
@@ -205,18 +206,14 @@ class EnemyProjectile {
     constructor({position, velocity, damage}) {
         this.position = position;
         this.velocity = velocity;
-        // this.radius = 3;
-        this.width = 3;
-        this.height = 10;
+        this.width = 5;
+        this.height = 15;
         this.damage = damage;
         this.active = true;
-    }
+    }d
 
     draw() {
-        ctx.fillStyle = "black";
-        // ctx.beginPath()
-        // ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI*2)
-        // ctx.fill();
+        ctx.fillStyle = "#88b903";
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 
@@ -228,12 +225,13 @@ class EnemyProjectile {
 }
 
 class Particle {
-    constructor({ position, velocity, radius, color }) {
+    constructor({ position, velocity, radius, color, fade }) {
         this.position = position;
         this.velocity = velocity;
         this.radius = radius;
         this.color = color;
         this.opacity = 1;
+        this.fade = fade;
     }
     draw() {
         ctx.save()
@@ -252,18 +250,49 @@ class Particle {
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
 
-        this.opacity -= 0.01;
+        if (this.fade){
+            this.opacity -= 0.01;
+        }
+
     }
 }
 
 
+function createParticles({ obj, color }) {
+    for (let i = 0; i < 15; i++) {
+        particles.push(new Particle({
+            position: {
+                x: obj.position.x + obj.width / 2,
+                y: obj.position.y + obj.height / 2
+            },
+            velocity: {
+                x: (Math.random() - 0.5) * 2,
+                y: (Math.random() - 0.5) * 2,
+            },
+            radius: Math.random() * 3,
+            color: color || "#fff",
+            fade: true,
+        }))
+    }
+}
+
 function animate() {
+    if (!game.active) return
     requestAnimationFrame(animate);
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     player.update();
+    backgroundStars.forEach(star => {
+        star.update();
+        if (star.position.y > canvas.height){
+            star.position.y = -star.radius;
+            star.position.x = Math.random() * canvas.width;
+        }
+    })
+
+    // explosions
     particles.forEach((particle, index) => {
         if (particle.opacity <= 0) {
             setTimeout(() => {
@@ -273,6 +302,8 @@ function animate() {
             particle.update();
         }
     })
+
+    // enemy bullets
     enemyProjectiles.forEach((projectile, index) => {
         if (projectile.position.y > canvas.height) {
             setTimeout(() => {
@@ -281,12 +312,26 @@ function animate() {
         } else if (projectile.active && projectile.position.y > player.position.y && projectile.position.y < player.position.y + player.height && projectile.position.x > player.position.x && projectile.position.x < player.position.x + player.width) {
             projectile.active = false;
             player.health -= projectile.damage;
+            createParticles({
+                obj: player, color: "red"
+            })
             setTimeout(() => {
                 enemyProjectiles.splice(index, 1);
+                if (player.health <= 0){
+                    player.opacity = 0;
+                    game.over = true;
+                }
             }, 0)
+            if (player.health <= 0){
+                setTimeout(() => {
+                    game.active = false;
+                }, 2000)
+            }
         }
         projectile.update();
     })
+
+    // player bullets
     projectiles.forEach((projectile, pindex) => {
         // is projectile out of view
         if (projectile.position.y < 0) {
@@ -297,6 +342,7 @@ function animate() {
         }
         projectile.update();
     })
+
     enemyGrids.forEach((grid, gindex) => {
         grid.update();
         grid.enemies.forEach((enemy, eindex) => {
@@ -312,21 +358,11 @@ function animate() {
                         if (projectileFound && enemyFound) {
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
+                            score += enemy.scoreValue;
 
-                            for (let i = 0; i < 15; i++) {
-                                particles.push(new Particle({
-                                    position: {
-                                        x: enemy.position.x + enemy.width / 2,
-                                        y: enemy.position.y + enemy.height / 2
-                                    },
-                                    velocity: {
-                                        x: (Math.random() - 0.5) * 2,
-                                        y: (Math.random() - 0.5) * 2,
-                                    },
-                                    radius: Math.random() * 3,
-                                    color: "#000"
-                                }))
-                            }
+                            createParticles({
+                                obj: enemy, color: "#88b903"
+                            })
 
                             if (grid.enemies.length > 0){
                                 // recalculating grid width
@@ -354,16 +390,11 @@ function animate() {
 
     })
 
-    // player shoot
-    const now = Date.now();
-    if (actions.shoot && now - lastShootTime > shootCooldown) {
-        projectiles.push(new Projectile({
-            basePosition: {
-                x: player.position.x + player.width / 2, y: player.position.y,
-            }, damage: 100,
-        }))
-        lastShootTime = now;
-    }
+
+    // score label
+    ctx.fillStyle = '#fff';
+    ctx.font = '1.5rem sans-serif'
+    ctx.fillText(`Score: ${score}`, 20, 40);
 
     // enemy grid spawn
     if (frames % spawnInterval === 0) {
@@ -372,27 +403,37 @@ function animate() {
         frames = 0;
     }
 
-    // keyboard inputs
-    if (actions.moveLeft && player.position.x > 0) {
-        player.velocity.x = -10;
-        player.rotation = -.30;
-    } else if (actions.moveRight && player.position.x + player.width <= canvas.width) {
-        player.velocity.x = 10;
-        player.rotation = .30;
-    } else {
-        player.velocity.x = 0;
-        player.rotation = 0;
-    }
-    if (actions.moveUp && player.position.y > canvas.height * 0.5) {
-        player.velocity.y = -10;
-    } else if (actions.moveDown && player.position.y + player.height < canvas.height) {
-        player.velocity.y = 10;
-    } else {
-        player.velocity.y = 0;
+    if (!game.over){
+        // player shoot
+        const now = Date.now();
+        if (actions.shoot && now - lastShootTime > shootCooldown) {
+            projectiles.push(player.shoot());
+            lastShootTime = now;
+        }
+
+        // player movements
+        if (actions.moveLeft && player.position.x > 0) {
+            player.velocity.x = -10;
+            player.rotation = -.30;
+        } else if (actions.moveRight && player.position.x + player.width <= canvas.width) {
+            player.velocity.x = 10;
+            player.rotation = .30;
+        } else {
+            player.velocity.x = 0;
+            player.rotation = 0;
+        }
+        if (actions.moveUp && player.position.y > canvas.height * 0.5) {
+            player.velocity.y = -10;
+        } else if (actions.moveDown && player.position.y + player.height < canvas.height) {
+            player.velocity.y = 10;
+        } else {
+            player.velocity.y = 0;
+        }
     }
 
+
     frames++;
-    console.log(frames, enemyGrids.length, projectiles.length, enemyProjectiles.length, particles.length);
+    // console.log(frames, enemyGrids.length, projectiles.length, enemyProjectiles.length, particles.length);
 
 
 }
@@ -461,16 +502,39 @@ addEventListener("resize", () => {
 const player = new Player();
 const projectiles = [];
 const particles = [];
+const backgroundStars = [];
 const enemyProjectiles = [];
 // const enemies = [];
 const enemyGrids = [];
 const actions = {
     moveLeft: false, moveRight: false, moveUp: false, moveDown: false, shoot: false,
 }
+const game = {
+    over: false,
+    active: true,
+}
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
+let score = 0;
 let spawnInterval = Math.floor(Math.random() * 500) + 500;
+
+// stars
+for (let i = 0; i < 50; i++) {
+    backgroundStars.push(new Particle({
+        position: {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height
+        },
+        velocity: {
+            x: 0,
+            y: 0.4,
+        },
+        radius: Math.random() * 2,
+        color: "#fff",
+        fade: false,
+    }))
+}
 
 animate();
 
