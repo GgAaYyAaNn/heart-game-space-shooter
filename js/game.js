@@ -25,6 +25,10 @@ const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
 let spawnInterval = Math.floor(Math.random() * 500) + 500;
 
+let fps = 60;
+let fpsInterval = 1000/fps;
+let msPrev = window.performance.now();
+
 window.addEventListener("auth-changed", ()=>{
     document.querySelector('#score').innerText = Player.getScore();
 })
@@ -50,6 +54,11 @@ function createParticles({ obj, color }) {
 function animate() {
     if (!game.active) return
     requestAnimationFrame(animate);
+
+    const msNow = window.performance.now();
+    const elapsed = msNow - msPrev;
+    if (elapsed < fpsInterval) return;
+    msPrev = msNow - (elapsed % fpsInterval);
 
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
