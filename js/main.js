@@ -1,5 +1,7 @@
 import {startGame} from "./game.js";
 import Player from "./core/player.js";
+import {HeartApi} from "./core/heartApi.js";
+
 
 document.addEventListener("DOMContentLoaded", ()=>{
     const startMenu = document.getElementById("start-menu");
@@ -14,10 +16,21 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const profileLoader = document.getElementById("profile-loader");
     const scoreboardLoader = document.getElementById("scoreboard-loader");
 
+    const puzzleMenu = document.getElementById("puzzle-menu");
+    const puzzleOpenBtn = document.querySelector(".puzzle-open-btn");
+    const puzzleConfirmBtn = document.querySelector(".puzzle-confirm-btn");
+    const puzzleCancelBtn = document.querySelector(".puzzle-cancel-btn");
+    const puzzleLoader = document.querySelector("#puzzle-menu .loader").parentElement;
+    const puzzleImg = document.querySelector("#puzzle-menu img");
+    const puzzleInput = document.querySelector("#puzzle-menu input");
+
+    let puzzleSolution = null;
+
     function hideAllMenus(){
         startMenu.classList.add("d-none");
-        restartMenu.classList.add('d-none')
-        scoreboardMenu.classList.add('d-none')
+        restartMenu.classList.add('d-none');
+        scoreboardMenu.classList.add('d-none');
+        puzzleMenu.classList.add("d-none");
     }
 
     startBtn.addEventListener("click", ()=>{
@@ -86,4 +99,32 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
         profileLoader.classList.add('d-none');
     }
+
+
+    puzzleOpenBtn.addEventListener("click", async ()=>{
+        puzzleMenu.classList.remove("d-none");
+        puzzleLoader.classList.remove("d-none")
+        puzzleImg.src = "";
+        puzzleInput.value = "";
+        const {imgSrc, solution} = await HeartApi.getGame();
+        puzzleLoader.classList.add("d-none");
+        puzzleImg.src = imgSrc;
+
+        puzzleSolution = solution;
+    })
+    puzzleCancelBtn.addEventListener("click", ()=>{
+        puzzleMenu.classList.add("d-none");
+    })
+    puzzleConfirmBtn.addEventListener("click", ()=>{
+        let userAnswer = puzzleInput.value;
+        if (parseInt(userAnswer) === puzzleSolution){
+            puzzleMenu.classList.add("d-none");
+            alert(`Your answer is correct.`)
+
+            hideAllMenus();
+            startGame();
+        }else{
+            alert("Your answer is not correct!")
+        }
+    })
 })

@@ -50,6 +50,7 @@ body{
 .btn-group{
     display: flex;
     flex-direction: column;
+    gap: 0.1rem
 }
 .btn{
     cursor: pointer;
@@ -124,4 +125,27 @@ td, th{
     100% {
         transform: rotate(360deg);
     }
+}
+
+#puzzle-menu{
+    background: black;
+}
+#puzzle-menu .menu-container{
+    transform: translateY(0rem);
+}
+#puzzle-menu #puzzle-img{
+    width: 500px;
+    margin: 0.5rem 0;
+}
+#puzzle-menu .confirm{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+#puzzle-menu input{
+    background: transparent;
+    padding: 0.5rem;
+    border: 1px solid white;
+    color: white;
 }
