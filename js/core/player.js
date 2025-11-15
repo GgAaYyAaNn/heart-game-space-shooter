@@ -77,7 +77,7 @@ const Player = (() => {
     async function getTopPlayers(limit = 10) {
         try {
             const scoresQuery = firebaseDB.query(
-                firebaseDB.ref(db, "scores"),
+                firebaseDB.ref(db, "space-shooter-scores"),
                 firebaseDB.orderByChild("score"),
                 firebaseDB.limitToLast(limit)
             );

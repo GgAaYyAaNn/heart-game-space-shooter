@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const profileLoader = document.getElementById("profile-loader");
+    const scoreboardLoader = document.getElementById("scoreboard-loader");
 
     function hideAllMenus(){
         startMenu.classList.add("d-none");
@@ -30,6 +31,24 @@ document.addEventListener("DOMContentLoaded", ()=>{
     scoreboardBtn.addEventListener("click", ()=>{
         hideAllMenus();
         scoreboardMenu.classList.remove('d-none');
+        scoreboardLoader.classList.remove("d-none");
+        scoreboardMenu.querySelector("tbody").innerHTML = "";
+        Player.getTopPlayers().then(players=>{
+            scoreboardLoader.classList.add("d-none")
+            let body = "";
+            players.forEach((player, index)=> {
+                body += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${player.name}</td>
+                    <td>${player.score}</td>
+                </tr>
+                `;
+            })
+            scoreboardMenu.querySelector("tbody").innerHTML = body;
+            scoreboardMenu.classList.remove('d-none');
+        })
+
     })
     backToMenuBtns.forEach(btn=>{
       btn.addEventListener("click", ()=>{
