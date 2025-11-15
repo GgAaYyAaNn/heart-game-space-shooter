@@ -9,8 +9,6 @@ import {
     particles,
     projectiles,
     resetState,
-    getScore,
-    incrementScore,
     setSpaceship,
     getSpaceship,
 } from "./core/gameState.js"
@@ -19,12 +17,17 @@ import {Spaceship} from "./entities/Spaceship.js";
 import {EnemyGrid} from "./entities/EnemyGrid.js";
 import {Particle} from "./entities/Particle.js";
 import {ScoreLabel} from "./entities/ScoreLabel.js";
+import Player from "./core/player.js";
 
 
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
 let spawnInterval = Math.floor(Math.random() * 500) + 500;
+
+window.addEventListener("auth-changed", ()=>{
+    document.querySelector('#score').innerText = Player.getScore();
+})
 
 function createParticles({ obj, color }) {
     for (let i = 0; i < 15; i++) {
@@ -141,8 +144,9 @@ function animate() {
                         if (projectileFound && enemyFound) {
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
-                            incrementScore(enemy.scoreValue);
-                            document.querySelector('#score').innerText = getScore();
+
+                            Player.incrementScore(enemyFound.scoreValue);
+                            document.querySelector('#score').innerText = Player.getScore();
 
                             dynamicScoreLabels.push(new ScoreLabel({
                                 x: enemy.position.x + enemy.width / 2,
@@ -255,7 +259,7 @@ export const startGame = ()=>{
         }))
     }
 
-    document.querySelector('#score').innerText = getScore();
+    document.querySelector('#score').innerText = Player.getScore();
     animate();
 }
 

@@ -1,5 +1,4 @@
 
-export let score = 0;
 export let spaceship = null;
 export let enemyGrids = [];
 export let projectiles = [];
@@ -29,17 +28,9 @@ export function resetState() {
     enemyProjectiles = [];
     dynamicScoreLabels = [];
     backgroundStars = [];
-    score = 0;
 
     game.over = false;
     game.active = true;
-}
-
-export function getScore(){
-    return score;
-}
-export function incrementScore(by){
-    score += by;
 }
 
 export function setSpaceship(obj){
