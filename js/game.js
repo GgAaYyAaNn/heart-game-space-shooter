@@ -1,3 +1,4 @@
+import {audio} from "./core/audio.js"
 import {canvas, ctx} from "./core/canvas.js";
 import {
     actions,
@@ -110,6 +111,8 @@ function animate() {
                 }
             }, 0)
             if (spaceship.health <= 0){
+                audio.gameOver.play();
+
                 setTimeout(() => {
                     game.active = false;
 
@@ -151,6 +154,7 @@ function animate() {
                         const projectileFound = projectiles.find(p => p === projectile);
                         const enemyFound = grid.enemies.find(e => e === enemy);
                         if (projectileFound && enemyFound) {
+                            audio.enemyHit.play();
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
 
@@ -187,6 +191,7 @@ function animate() {
 
         // enemy shoot
         if (frames % 100 === 0 && grid.enemies.length > 0) {
+            audio.enemyShoot.play();
             let _enemy = grid.enemies[Math.floor(Math.random() * grid.enemies.length)];
             enemyProjectiles.push(_enemy.shoot());
         }
@@ -215,6 +220,7 @@ function animate() {
         // player shoot
         const now = Date.now();
         if (actions.shoot && now - lastShootTime > shootCooldown) {
+            audio.shoot.play();
             projectiles.push(spaceship.shoot());
             lastShootTime = now;
         }
@@ -247,6 +253,10 @@ function animate() {
 
 
 export const startGame = ()=>{
+    audio.backgroundMusic.play();
+    audio.start.play();
+
+
     resetState();
     setSpaceship(new Spaceship());
     frames = 0;
