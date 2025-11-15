@@ -263,3 +263,9 @@ export const startGame = ()=>{
     animate();
 }
 
+export const resumeFromFail = ()=>{
+    game.active = true
+    game.over = false;
+    setSpaceship(new Spaceship());
+    animate();
+}

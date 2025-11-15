@@ -1,4 +1,4 @@
-import {startGame} from "./game.js";
+import {startGame, resumeFromFail} from "./game.js";
 import Player from "./core/player.js";
 import {HeartApi} from "./core/heartApi.js";
 
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
             alert(`Your answer is correct.`)
 
             hideAllMenus();
-            startGame();
+            resumeFromFail();
         }else{
             alert("Your answer is not correct!")
         }
