@@ -1,318 +1,30 @@
+import {canvas, ctx} from "./core/canvas.js";
+import {
+    actions,
+    backgroundStars,
+    dynamicScoreLabels,
+    enemyGrids,
+    enemyProjectiles,
+    game,
+    particles,
+    projectiles,
+    resetState,
+    getScore,
+    incrementScore,
+    setSpaceship,
+    getSpaceship,
+} from "./core/gameState.js"
 
-const canvas = document.getElementById("canvas1");
-const ctx = canvas.getContext("2d");
-canvas.width = 1024;
-canvas.height = 576;
-addEventListener("resize", () => {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-})
+import {Spaceship} from "./entities/Spaceship.js";
+import {EnemyGrid} from "./entities/EnemyGrid.js";
+import {Particle} from "./entities/Particle.js";
+import {ScoreLabel} from "./entities/ScoreLabel.js";
 
-let player = null;
-let projectiles = [];
-let particles = [];
-let backgroundStars = [];
-let enemyProjectiles = [];
-// const enemies = [];
-let enemyGrids = [];
-let dynamicScoreLabels = [];
-const actions = {
-    moveLeft: false, moveRight: false, moveUp: false, moveDown: false, shoot: false,
-}
-const game = {
-    over: false,
-    active: true,
-}
+
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
-let score = 0;
 let spawnInterval = Math.floor(Math.random() * 500) + 500;
-
-class Player {
-    constructor() {
-        this.position = {
-            x: 0, y: 0,
-        }
-        this.velocity = {
-            x: 0, y: 0,
-        }
-        this.width = 0;
-        this.height = 0;
-        this.health = 100;
-        this.rotation = 0;
-        this.opacity = 1;
-
-        const image = new Image();
-        image.src = "./img/player_2.png";
-        image.onload = () => {
-            const scale = 0.4;
-            this.image = image;
-            this.width = this.image.width * scale;
-            this.height = this.image.height * scale;
-
-            this.position.x = canvas.width / 2 - this.width / 2;
-            this.position.y = canvas.height - this.height - 10;
-        }
-    }
-
-    draw() {
-        // ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
-
-        ctx.save()
-        ctx.globalAlpha = this.opacity;
-        ctx.translate(this.position.x + player.width / 2, this.position.y + this.height / 2);
-        ctx.rotate(this.rotation);
-        ctx.translate(-this.position.x - this.width / 2, -this.position.y - this.height / 2);
-        ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
-
-
-        // // health bar
-        // ctx.fillStyle = "black";
-        // ctx.fillRect(
-        //     this.position.x,
-        //     this.position.y + this.height,
-        //     this.width * this.health / 100,
-        //     1
-        // )
-
-        ctx.restore();
-
-
-    }
-
-    update() {
-        if (this.image) {
-            this.draw();
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
-        }
-    }
-
-    shoot(){
-        return new Projectile({
-            position: {
-                x: this.position.x + this.width / 2,
-                y: this.position.y,
-            }, damage: 100,
-        })
-    }
-}
-
-
-class Enemy {
-    constructor({position, velocity, onImageLoad}) {
-        this.position = {
-            x: position.x, y: position.y
-        }
-        this.velocity = {
-            x: velocity.x, y: velocity.y
-        }
-        this.width = 0;
-        this.height = 0;
-        this.scoreValue = 100;
-        // this.health = 100;
-        const image = new Image();
-        image.src = "./img/enemy_2.png";
-        image.onload = () => {
-            const scale = 0.35;
-            this.image = image;
-            this.width = this.image.width * scale;
-            this.height = this.image.height * scale;
-
-            if (onImageLoad) {
-                onImageLoad(this);
-            }
-        }
-    }
-
-    draw() {
-        ctx.drawImage(this.image, this.position.x, this.position.y, this.width, this.height);
-
-        // // health bar
-        // ctx.fillStyle = "black";
-        // ctx.fillRect(
-        //     this.position.x,
-        //     this.position.y + this.height,
-        //     this.width * this.health / 100,
-        //     1
-        // )
-    }
-
-    update() {
-        if (this.image) {
-            this.draw();
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
-
-            // if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-            //     this.velocity.x = -this.velocity.x;
-            // }
-
-        }
-    }
-
-    shoot() {
-        return new EnemyProjectile({
-            position: {
-                x: this.position.x + this.width / 2, y: this.position.y + this.height / 2,
-            }, velocity: {
-                x: 0, y: 5,
-            }, damage: 100,
-        })
-    }
-}
-
-class EnemyGrid {
-    constructor() {
-        this.position = {
-            x: 0, y: 0,
-        }
-        this.velocity = {
-            x: 3, y: 0
-        }
-        this.enemies = [];
-        this.width = 0;
-
-        new Enemy({
-            position: {}, velocity: {}, onImageLoad: (enemy) => {
-                const rows = Math.floor(Math.random() * 5) + 2;
-                const cols = Math.floor(Math.random() * 10) + 5;
-                this.width = cols * enemy.width;
-                for (let x = 0; x < cols; x++) {
-                    for (let y = 0; y < rows; y++) {
-                        this.enemies.push(new Enemy({
-                            position: {
-                                x: x * enemy.width, y: y * enemy.height,
-                            }, velocity: {
-                                x: this.velocity.x, y: this.velocity.y,
-                            }
-                        }));
-                    }
-                }
-            }
-        });
-
-    }
-
-    update() {
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-
-        this.velocity.y = 0;
-        if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-            this.velocity.x = -this.velocity.x;
-            this.velocity.y += 30;
-        }
-    }
-}
-
-class Projectile {
-    constructor({position, damage}) {
-        this.position = {
-            x: position.x, y: position.y,
-        }
-        this.velocity = {
-            x: 0, y: -10,
-        }
-        this.damage = damage;
-        this.active = true;
-        this.width = 3;
-        this.height = 10;
-    }
-
-    draw() {
-        ctx.fillStyle = "red";
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-    }
-}
-
-class EnemyProjectile {
-    constructor({position, velocity, damage}) {
-        this.position = position;
-        this.velocity = velocity;
-        this.width = 5;
-        this.height = 15;
-        this.damage = damage;
-        this.active = true;
-    }d
-
-    draw() {
-        ctx.fillStyle = "#88b903";
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
-
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-    }
-}
-
-class Particle {
-    constructor({ position, velocity, radius, color, fade }) {
-        this.position = position;
-        this.velocity = velocity;
-        this.radius = radius;
-        this.color = color;
-        this.opacity = 1;
-        this.fade = fade;
-    }
-    draw() {
-        ctx.save()
-
-        ctx.globalAlpha = this.opacity;
-        ctx.beginPath()
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.closePath();
-
-        ctx.restore()
-    }
-    update() {
-        this.draw();
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
-
-        if (this.fade){
-            this.opacity -= 0.01;
-        }
-
-    }
-}
-
-class ScoreLabel {
-    constructor({ x, y, value }) {
-        this.x = x;
-        this.y = y;
-        this.value = value;
-        this.opacity = 1;
-        this.velocityY = -0.5;
-    }
-
-    draw() {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = "#fff";
-        ctx.font = "1rem sans-serif";
-        ctx.fillText(this.value, this.x, this.y);
-        ctx.restore();
-    }
-
-    update() {
-        this.draw();
-        this.y += this.velocityY;
-        this.opacity -= 0.02;
-    }
-}
-
 
 function createParticles({ obj, color }) {
     for (let i = 0; i < 15; i++) {
@@ -339,7 +51,8 @@ function animate() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    player.update();
+    const spaceship = getSpaceship();
+    spaceship.update();
     backgroundStars.forEach(star => {
         star.update();
         if (star.position.y > canvas.height){
@@ -365,20 +78,26 @@ function animate() {
             setTimeout(() => {
                 enemyProjectiles.splice(index, 1);
             }, 0)
-        } else if (projectile.active && projectile.position.y > player.position.y && projectile.position.y < player.position.y + player.height && projectile.position.x > player.position.x && projectile.position.x < player.position.x + player.width) {
+        } else if (
+            projectile.active
+            && projectile.position.y > spaceship.position.y
+            && projectile.position.y < spaceship.position.y + spaceship.height
+            && projectile.position.x > spaceship.position.x
+            && projectile.position.x < spaceship.position.x + spaceship.width
+        ) {
             projectile.active = false;
-            player.health -= projectile.damage;
+            spaceship.health -= projectile.damage;
             createParticles({
-                obj: player, color: "red"
+                obj: spaceship, color: "red"
             })
             setTimeout(() => {
                 enemyProjectiles.splice(index, 1);
-                if (player.health <= 0){
-                    player.opacity = 0;
+                if (spaceship.health <= 0){
+                    spaceship.opacity = 0;
                     game.over = true;
                 }
             }, 0)
-            if (player.health <= 0){
+            if (spaceship.health <= 0){
                 setTimeout(() => {
                     game.active = false;
 
@@ -408,7 +127,13 @@ function animate() {
             enemy.velocity.y = grid.velocity.y;
             enemy.update()
             projectiles.forEach((projectile, pindex) => {
-                if (projectile.active && projectile.position.y < enemy.position.y + enemy.height && projectile.position.y > enemy.position.y && projectile.position.x > enemy.position.x && projectile.position.x < enemy.position.x + enemy.width) {
+                if (
+                    projectile.active
+                    && projectile.position.y < enemy.position.y + enemy.height
+                    && projectile.position.y > enemy.position.y
+                    && projectile.position.x > enemy.position.x
+                    && projectile.position.x < enemy.position.x + enemy.width
+                ) {
                     projectile.active = false;
                     setTimeout(() => {
                         const projectileFound = projectiles.find(p => p === projectile);
@@ -416,8 +141,8 @@ function animate() {
                         if (projectileFound && enemyFound) {
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
-                            score += enemy.scoreValue;
-                            document.querySelector('#score').innerText = score;
+                            incrementScore(enemy.scoreValue);
+                            document.querySelector('#score').innerText = getScore();
 
                             dynamicScoreLabels.push(new ScoreLabel({
                                 x: enemy.position.x + enemy.width / 2,
@@ -455,11 +180,6 @@ function animate() {
 
     })
 
-    // // score label
-    // ctx.fillStyle = '#fff';
-    // ctx.font = '1.5rem sans-serif'
-    // ctx.fillText(`Score: ${score}`, 20, 40);
-
     // dynamic score labels
     dynamicScoreLabels.forEach((label, index)=>{
         if (label.opacity <= 0){
@@ -482,51 +202,41 @@ function animate() {
         // player shoot
         const now = Date.now();
         if (actions.shoot && now - lastShootTime > shootCooldown) {
-            projectiles.push(player.shoot());
+            projectiles.push(spaceship.shoot());
             lastShootTime = now;
         }
 
         // player movements
-        if (actions.moveLeft && player.position.x > 0) {
-            player.velocity.x = -10;
-            player.rotation = -.30;
-        } else if (actions.moveRight && player.position.x + player.width <= canvas.width) {
-            player.velocity.x = 10;
-            player.rotation = .30;
+        if (actions.moveLeft && spaceship.position.x > 0) {
+            spaceship.velocity.x = -10;
+            spaceship.rotation = -.30;
+        } else if (actions.moveRight && spaceship.position.x + spaceship.width <= canvas.width) {
+            spaceship.velocity.x = 10;
+            spaceship.rotation = .30;
         } else {
-            player.velocity.x = 0;
-            player.rotation = 0;
+            spaceship.velocity.x = 0;
+            spaceship.rotation = 0;
         }
-        if (actions.moveUp && player.position.y > canvas.height * 0.5) {
-            player.velocity.y = -10;
-        } else if (actions.moveDown && player.position.y + player.height < canvas.height) {
-            player.velocity.y = 10;
+        if (actions.moveUp && spaceship.position.y > canvas.height * 0.5) {
+            spaceship.velocity.y = -10;
+        } else if (actions.moveDown && spaceship.position.y + spaceship.height < canvas.height) {
+            spaceship.velocity.y = 10;
         } else {
-            player.velocity.y = 0;
+            spaceship.velocity.y = 0;
         }
     }
 
 
     frames++;
     // console.log(frames, enemyGrids.length, projectiles.length, enemyProjectiles.length, particles.length);
-
-
 }
 
-function init(){
-    player = new Player();
-    projectiles = [];
-    particles = [];
-    backgroundStars = [];
-    enemyProjectiles = [];
-    enemyGrids = [];
-    dynamicScoreLabels = [];
-    lastShootTime = 0;
-    frames = 0;
-    score = 0;
 
-    game.over = false;
-    game.active = true;
+
+export const startGame = ()=>{
+    resetState();
+    setSpaceship(new Spaceship());
+    frames = 0;
 
     // stars
     for (let i = 0; i < 50; i++) {
@@ -545,76 +255,7 @@ function init(){
         }))
     }
 
-    document.querySelector('#score').innerText = score;
-}
-
-addEventListener("keydown", ({key}) => {
-    switch (key) {
-        case "a":
-        case "ArrowLeft":
-            actions.moveLeft = true;
-            actions.moveRight = false;
-            break;
-        case "d":
-        case "ArrowRight":
-            actions.moveLeft = false;
-            actions.moveRight = true;
-            break;
-        case "w":
-        case "ArrowUp":
-            actions.moveUp = true;
-            actions.moveDown = false;
-            break;
-        case "s":
-        case "ArrowDown":
-            actions.moveUp = false;
-            actions.moveDown = true;
-            break;
-        case " ":
-            actions.shoot = true;
-            break;
-    }
-})
-addEventListener("keyup", ({key}) => {
-    switch (key) {
-        case "a":
-        case "ArrowLeft":
-            actions.moveLeft = false;
-            break;
-        case "d":
-        case "ArrowRight":
-            actions.moveRight = false;
-            break;
-        case "w":
-        case "ArrowUp":
-            actions.moveUp = false;
-            break;
-        case "s":
-        case "ArrowDown":
-            actions.moveDown = false;
-            break;
-        case " ":
-            actions.shoot = false;
-            break;
-    }
-})
-
-
-
-export const startGame = ()=>{
-    init();
+    document.querySelector('#score').innerText = getScore();
     animate();
 }
-
-// document.querySelector("#startBtn").addEventListener("click", ()=>{
-//     document.querySelector("#startScreen").style.display = "none";
-//     init();
-//     animate();
-// })
-// document.querySelector("#restartBtn").addEventListener("click", ()=>{
-//     document.querySelector("#restartScreen").classList.add('d-none');
-//     init();
-//     animate();
-//
-// })
 
