@@ -131,7 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   QuoteApi.getQuote().then((q) => {
-    console.log(q);
     quoteEle.innerText = q;
   });
 });
