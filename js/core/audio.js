@@ -1,6 +1,7 @@
 export const audio = {
     backgroundMusic: new Howl({
-        src: "./../../audio/background_music.mp3"
+        src: "./../../audio/background_music.mp3",
+        loop: true
     }),
     enemyShoot: new Howl({
         src: "./../../audio/enemy_shoot.mp3"
