@@ -149,3 +149,9 @@ td, th{
     border: 1px solid white;
     color: white;
 }
+
+#quote{
+    padding-top: 3rem;
+    text-align: center;
+    max-width: 500px;
+}
