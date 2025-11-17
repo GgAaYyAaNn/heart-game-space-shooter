@@ -178,9 +178,7 @@ function animate() {
                                 grid.width = lastEnemy.position.x - firstEnemy.position.x + lastEnemy.width;
                                 grid.position.x = firstEnemy.position.x;
                             }else{
-                                setTimeout(()=>{
-                                    enemyGrids.slice(gindex, 1)
-                                }, 0)
+                                enemyGrids.splice(gindex, 1)
                             }
 
                         }
