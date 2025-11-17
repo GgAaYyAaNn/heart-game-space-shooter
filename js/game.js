@@ -25,6 +25,7 @@ import Player from "./core/player.js";
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
+let scoreMultiplier = 0;
 let enemySpawnSpeedModifier = 500;
 let enemySpawnInterval = Math.floor(Math.random() * 500) + enemySpawnSpeedModifier;
 let lastPowerUpSpawned = window.performance.now();
@@ -199,13 +200,14 @@ function animate() {
                             projectiles.splice(pindex, 1);
                             grid.enemies.splice(eindex, 1);
 
-                            Player.incrementScore(enemyFound.scoreValue);
+                            const score = enemyFound.scoreValue * scoreMultiplier ;
+                            Player.incrementScore(score);
                             document.querySelector('#score').innerText = Player.getScore();
 
                             dynamicScoreLabels.push(new ScoreLabel({
                                 x: enemy.position.x + enemy.width / 2,
                                 y: enemy.position.y,
-                                value: enemy.scoreValue,
+                                value: score,
                             }))
 
                             createParticles({
@@ -265,6 +267,7 @@ function animate() {
         frames = 0;
 
         enemySpawnSpeedModifier = enemySpawnSpeedModifier < 0 ? 200 : enemySpawnSpeedModifier - 50;
+        scoreMultiplier += 1;
     }
 
     // spanning powerups
@@ -336,6 +339,7 @@ export const startGame = ()=>{
     resetState();
     setSpaceship(new Spaceship());
     frames = 0;
+    scoreMultiplier = 0;
     enemySpawnSpeedModifier = 500;
 
     // stars
