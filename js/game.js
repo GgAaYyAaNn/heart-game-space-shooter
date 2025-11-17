@@ -363,5 +363,18 @@ export const resumeFromFail = ()=>{
     game.active = true
     game.over = false;
     setSpaceship(new Spaceship());
+
+    audio.start.play();
+    enemyGrids.forEach(grid=>{
+        grid.enemies.forEach(enemy=>{
+            createParticles({
+                obj: enemy, color: "#88b903"
+            })
+        })
+    })
+    enemyGrids.splice(0, enemyGrids.length);
+    enemyProjectiles.splice(0, enemyProjectiles.length);
+    enemySpawnInterval = 1;
+
     animate();
 }
