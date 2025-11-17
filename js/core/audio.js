@@ -18,4 +18,11 @@ export const audio = {
     start: new Howl({
         src: "./../../audio/start.mp3"
     }),
+    powerup: new Howl({
+        src: "./../../audio/powerup.mp3"
+    }),
+    shoot_machine_gun: new Howl({
+        src: "./../../audio/shoot_machine_gun.mp3",
+        volume: 0.5,
+    }),
 }

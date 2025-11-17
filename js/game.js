@@ -11,20 +11,23 @@ import {
     projectiles,
     resetState,
     setSpaceship,
-    getSpaceship,
+    getSpaceship, powerUps,
 } from "./core/gameState.js"
 
 import {Spaceship} from "./entities/Spaceship.js";
 import {EnemyGrid} from "./entities/EnemyGrid.js";
 import {Particle} from "./entities/Particle.js";
 import {ScoreLabel} from "./entities/ScoreLabel.js";
+import {Powerup} from "./entities/Powerup.js";
 import Player from "./core/player.js";
 
 
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
-let spawnInterval = Math.floor(Math.random() * 500) + 500;
+let enemySpawnInterval = Math.floor(Math.random() * 500) + 500;
+let lastPowerUpSpawned = window.performance.now();
+let powerUpSpawnInterval = Math.floor(Math.random() * 40000) + 20000; // milliseconds
 
 let fps = 60;
 let fpsInterval = 1000/fps;
@@ -52,6 +55,20 @@ function createParticles({ obj, color }) {
     }
 }
 
+function removeObj(objArray, obj, index){
+    setTimeout(() => {
+        if (index && objArray[index] === obj){
+            objArray.splice(index, 1);
+        }else{
+            const index = objArray.findIndex(o => o === obj);
+            if (index !== -1){
+                objArray.splice(index, 1);
+            }
+        }
+    }, 0);
+}
+
+
 function animate() {
     if (!game.active) return
     requestAnimationFrame(animate);
@@ -73,13 +90,18 @@ function animate() {
             star.position.x = Math.random() * canvas.width;
         }
     })
+    powerUps.forEach((powerup, puindex)=>{
+        if (powerup.position.x - powerup.radius > canvas.width){
+            removeObj(powerUps, powerup, puindex);
+        }else{
+            powerup.update();
+        }
+    })
 
     // explosions
     particles.forEach((particle, index) => {
         if (particle.opacity <= 0) {
-            setTimeout(() => {
-                particles.splice(index, 1);
-            }, 0);
+            removeObj(particles, particle, index)
         } else {
             particle.update();
         }
@@ -88,9 +110,7 @@ function animate() {
     // enemy bullets
     enemyProjectiles.forEach((projectile, index) => {
         if (projectile.position.y > canvas.height) {
-            setTimeout(() => {
-                enemyProjectiles.splice(index, 1);
-            }, 0)
+            removeObj(enemyProjectiles, projectile, index);
         } else if (
             projectile.active
             && projectile.position.y > spaceship.position.y
@@ -128,10 +148,29 @@ function animate() {
         // is projectile out of view
         if (projectile.position.y < 0) {
             projectile.active = false;
-            setTimeout(() => {
-                projectiles.splice(pindex, 1)
-            }, 0)
+            removeObj(projectiles, projectile, pindex);
         }
+
+        // powerup hit check
+        powerUps.forEach((powerup, puindex)=>{
+            if (
+                Math.hypot(
+                    projectile.position.x - powerup.position.x,
+                    projectile.position.y - powerup.position.y,
+                ) <= powerup.radius
+            ){
+                audio.powerup.play();
+                spaceship.powerupActive = true;
+                projectile.active = false;
+                removeObj(projectiles, projectile, pindex);
+                removeObj(powerUps, powerup, puindex);
+
+                setTimeout(()=>{
+                    spaceship.powerupActive = false;
+                }, 5000);
+            }
+        })
+
         projectile.update();
     })
 
@@ -208,18 +247,43 @@ function animate() {
     })
 
     // enemy grid spawn
-    if (frames % spawnInterval === 0) {
-        spawnInterval = Math.floor(Math.random() * 500) + 500;
+    if (frames % enemySpawnInterval === 0) {
+        enemySpawnInterval = Math.floor(Math.random() * 500) + 500;
         enemyGrids.push(new EnemyGrid());
         frames = 0;
+    }
+
+    // spanning powerups
+    if (msNow - lastPowerUpSpawned >= powerUpSpawnInterval){
+        lastPowerUpSpawned = msNow;
+        powerUpSpawnInterval = Math.floor(Math.random() * 40000) + 20000; // milliseconds
+        powerUps.push(
+            new Powerup({
+                position: {
+                    x: 0,
+                    y: Math.random() * canvas.height / 2 + 50,
+                },
+                velocity: {
+                    x: 5,
+                    y: 0,
+                }
+            })
+        );
     }
 
     if (!game.over){
         // player shoot
         const now = Date.now();
         if (actions.shoot && now - lastShootTime > shootCooldown) {
-            audio.shoot.play();
-            projectiles.push(spaceship.shoot());
+            if (spaceship.powerupActive){
+                audio.shoot_machine_gun.play();
+            }else{
+                audio.shoot.play();
+            }
+
+            spaceship.shoot().forEach(projectile=>{
+                projectiles.push(projectile);
+            })
             lastShootTime = now;
         }
 
@@ -245,7 +309,7 @@ function animate() {
 
 
     frames++;
-    // console.log(frames, enemyGrids.length, projectiles.length, enemyProjectiles.length, particles.length);
+    // console.log(frames, enemyGrids.length, projectiles.length, enemyProjectiles.length, particles.length, powerUps.length);
 }
 
 

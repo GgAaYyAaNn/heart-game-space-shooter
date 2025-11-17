@@ -14,6 +14,7 @@ export class Spaceship {
         this.health = 100;
         this.rotation = 0;
         this.opacity = 1;
+        this.powerupActive = false;
 
         const image = new Image();
         image.src = "./img/player_2.png";
@@ -62,11 +63,33 @@ export class Spaceship {
     }
 
     shoot(){
-        return new Projectile({
-            position: {
-                x: this.position.x + this.width / 2,
-                y: this.position.y,
-            }, damage: 100,
-        })
+        let projectiles = [];
+        projectiles.push(
+            new Projectile({
+                position: {
+                    x: this.position.x + this.width * (2/4),
+                    y: this.position.y,
+                }, damage: 100,
+            })
+        )
+        if (this.powerupActive){
+            projectiles.push(
+                new Projectile({
+                    position: {
+                        x: this.position.x + this.width * (1/4),
+                        y: this.position.y,
+                    }, damage: 100,
+                })
+            )
+            projectiles.push(
+                new Projectile({
+                    position: {
+                        x: this.position.x + this.width * (3/4),
+                        y: this.position.y,
+                    }, damage: 100,
+                })
+            )
+        }
+        return projectiles;
     }
 }
