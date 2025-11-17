@@ -39,7 +39,7 @@ export class EnemyGrid {
 
         this.velocity.y = 0;
         if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-            this.velocity.x = -this.velocity.x;
+            this.velocity.x = -this.velocity.x * 1.05;
             this.velocity.y += 30;
         }
     }

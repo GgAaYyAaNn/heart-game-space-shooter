@@ -25,7 +25,8 @@ import Player from "./core/player.js";
 let lastShootTime = 0;
 const shootCooldown = 100; // milliseconds between shots (0.1s)
 let frames = 0;
-let enemySpawnInterval = Math.floor(Math.random() * 500) + 500;
+let enemySpawnSpeedModifier = 500;
+let enemySpawnInterval = Math.floor(Math.random() * 500) + enemySpawnSpeedModifier;
 let lastPowerUpSpawned = window.performance.now();
 let powerUpSpawnInterval = Math.floor(Math.random() * 40000) + 20000; // milliseconds
 
@@ -68,6 +69,30 @@ function removeObj(objArray, obj, index){
     }, 0);
 }
 
+function rectangularCollision(rect1, rect2){
+    return (
+        rect1.position.y > rect2.position.y
+        && rect1.position.y < rect2.position.y + rect2.height
+        && rect1.position.x > rect2.position.x
+        && rect1.position.x < rect2.position.x + rect2.width
+    )
+}
+
+function endGame(){
+    game.over = true;
+    audio.gameOver.play();
+
+    const spaceship = getSpaceship()
+    spaceship.opacity = 0;
+    createParticles({
+        obj: spaceship, color: "red"
+    })
+
+    setTimeout(() => {
+        game.active = false;
+        window.dispatchEvent(new CustomEvent('game-over'));
+    }, 2000)
+}
 
 function animate() {
     if (!game.active) return
@@ -112,32 +137,13 @@ function animate() {
         if (projectile.position.y > canvas.height) {
             removeObj(enemyProjectiles, projectile, index);
         } else if (
-            projectile.active
-            && projectile.position.y > spaceship.position.y
-            && projectile.position.y < spaceship.position.y + spaceship.height
-            && projectile.position.x > spaceship.position.x
-            && projectile.position.x < spaceship.position.x + spaceship.width
+            projectile.active && rectangularCollision(projectile, spaceship)
         ) {
             projectile.active = false;
             spaceship.health -= projectile.damage;
-            createParticles({
-                obj: spaceship, color: "red"
-            })
-            setTimeout(() => {
-                enemyProjectiles.splice(index, 1);
-                if (spaceship.health <= 0){
-                    spaceship.opacity = 0;
-                    game.over = true;
-                }
-            }, 0)
+            removeObj(enemyProjectiles, projectile, index);
             if (spaceship.health <= 0){
-                audio.gameOver.play();
-
-                setTimeout(() => {
-                    game.active = false;
-
-                    window.dispatchEvent(new CustomEvent('game-over'));
-                }, 2000)
+                endGame();
             }
         }
         projectile.update();
@@ -182,11 +188,7 @@ function animate() {
             enemy.update()
             projectiles.forEach((projectile, pindex) => {
                 if (
-                    projectile.active
-                    && projectile.position.y < enemy.position.y + enemy.height
-                    && projectile.position.y > enemy.position.y
-                    && projectile.position.x > enemy.position.x
-                    && projectile.position.x < enemy.position.x + enemy.width
+                    projectile.active && rectangularCollision(projectile, enemy)
                 ) {
                     projectile.active = false;
                     setTimeout(() => {
@@ -224,6 +226,16 @@ function animate() {
                     }, 0)
                 }
             })
+
+
+            // remove player if enemy touch it or enemy move out of the canvas
+            if (
+                !game.over && rectangularCollision(enemy, spaceship) || enemy.position.y + enemy.width > canvas.height
+            ){
+                spaceship.health = 0;
+                endGame();
+            }
+
         })
 
         // enemy shoot
@@ -248,9 +260,11 @@ function animate() {
 
     // enemy grid spawn
     if (frames % enemySpawnInterval === 0) {
-        enemySpawnInterval = Math.floor(Math.random() * 500) + 500;
+        enemySpawnInterval = Math.floor(Math.random() * 500) + enemySpawnSpeedModifier;
         enemyGrids.push(new EnemyGrid());
         frames = 0;
+
+        enemySpawnSpeedModifier = enemySpawnSpeedModifier < 0 ? 200 : enemySpawnSpeedModifier - 50;
     }
 
     // spanning powerups
@@ -322,6 +336,7 @@ export const startGame = ()=>{
     resetState();
     setSpaceship(new Spaceship());
     frames = 0;
+    enemySpawnSpeedModifier = 500;
 
     // stars
     for (let i = 0; i < 50; i++) {
