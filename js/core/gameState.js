@@ -7,6 +7,8 @@ export let enemyProjectiles = [];
 export let dynamicScoreLabels = [];
 export let backgroundStars = [];
 
+export let powerUps = [];
+
 export const actions = {
     moveLeft: false,
     moveRight: false,
