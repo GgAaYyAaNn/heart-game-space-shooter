@@ -46,13 +46,15 @@ const Player = (() => {
     function incrementScore(by){
         score += by;
         const user = firebaseAuth.getAuth().currentUser;
-        if (!user) return;
-        const userRef = firebaseDB.ref(db, `space-shooter-scores/${user.uid}`);
-        void firebaseDB.set(userRef, {
-            score: score,
-            name: user.displayName,
-            timestamp: Date.now(),
-        });
+        if (user) {
+            const userRef = firebaseDB.ref(db, `space-shooter-scores/${user.uid}`);
+            void firebaseDB.set(userRef, {
+                score: score,
+                name: user.displayName,
+                timestamp: Date.now(),
+            });
+        }
+        window.dispatchEvent(new CustomEvent("score-changed"));
     }
 
     function isLoggedIn(){

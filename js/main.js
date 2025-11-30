@@ -87,6 +87,10 @@ document.addEventListener("DOMContentLoaded", () => {
     Player.logout().then(updatePlayerStats);
   });
   window.addEventListener("auth-changed", updatePlayerStats);
+  window.addEventListener("score-changed", ()=>{
+    document.querySelector('#score').innerText = Player.getScore();
+  });
+
   function updatePlayerStats() {
     if (Player.isLoggedIn()) {
       document.getElementById("profile-picture").src = Player.getAvatarSrc();
@@ -100,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       logoutBtn.classList.add("d-none");
     }
 
+    document.querySelector('#score').innerText = Player.getScore();
     profileLoader.classList.add("d-none");
   }
 

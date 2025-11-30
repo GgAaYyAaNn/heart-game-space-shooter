@@ -35,10 +35,6 @@ let fps = 60;
 let fpsInterval = 1000/fps;
 let msPrev = window.performance.now();
 
-window.addEventListener("auth-changed", ()=>{
-    document.querySelector('#score').innerText = Player.getScore();
-})
-
 function createParticles({ obj, color }) {
     for (let i = 0; i < 15; i++) {
         particles.push(new Particle({
@@ -202,7 +198,6 @@ function animate() {
 
                             const score = enemyFound.scoreValue * scoreMultiplier ;
                             Player.incrementScore(score);
-                            document.querySelector('#score').innerText = Player.getScore();
 
                             dynamicScoreLabels.push(new ScoreLabel({
                                 x: enemy.position.x + enemy.width / 2,
